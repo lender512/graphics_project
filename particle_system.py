@@ -4,15 +4,15 @@
 import numpy as np
 import cv2
 
-NUM_ITERATIONS = 5
+NUM_ITERATIONS = 2
 
 class Constraint:
     
     
-    def __init__(self, particleA, particleB, restlength):
-        self.particleA = particleA
-        self.particleB = particleB
-        self.restlength = restlength
+    def __init__(yo, particleA, particleB, restlength):
+        yo.particleA = particleA
+        yo.particleB = particleB
+        yo.restlength = restlength
 
 class ParticleSystem:
     
@@ -20,52 +20,52 @@ class ParticleSystem:
     defaultPosB = [500, 0]
     
     
-    def __init__(self, num_particles, gravity, time_step):
-        self.m_x = np.zeros((num_particles, 2), dtype=np.float64)
-        self.m_oldx = np.zeros((num_particles, 2), dtype=np.float64)
-        self.m_a = np.zeros((num_particles, 2), dtype=np.float64)
-        self.m_vGravity = gravity
-        self.m_fTimeStep = time_step
-        self.m_constraints = []
+    def __init__(yo, num_particles, gravity, time_step):
+        yo.m_x = np.zeros((num_particles, 2), dtype=np.float64)
+        yo.m_oldx = np.zeros((num_particles, 2), dtype=np.float64)
+        yo.m_a = np.zeros((num_particles, 2), dtype=np.float64)
+        yo.m_vGravity = gravity
+        yo.m_fTimeStep = time_step
+        yo.m_constraints = []
         
         
         
-    def TimeStep(self, dt):
-        self.m_fTimeStep = dt
-        self.AccumulateForces()
-        self.Verlet()
-        self.SatisfyConstraints()
+    def TimeStep(yo, dt):
+        yo.m_fTimeStep = dt
+        yo.AccumulateForces()
+        yo.Verlet()
+        yo.SatisfyConstraints()
         
-    def Verlet(self):
-        for i in range(len(self.m_x)):
-            temp = self.m_x[i].copy()
-            self.m_x[i] += self.m_x[i] - self.m_oldx[i] + self.m_a[i] * self.m_fTimeStep * self.m_fTimeStep
-            self.m_oldx[i] = temp.copy()
+    def Verlet(yo):
+        for i in range(len(yo.m_x)):
+            temp = yo.m_x[i].copy()
+            yo.m_x[i] += yo.m_x[i] - yo.m_oldx[i] + yo.m_a[i] * yo.m_fTimeStep * yo.m_fTimeStep
+            yo.m_oldx[i] = temp.copy()
             
-    def SatisfyConstraints(self):
+    def SatisfyConstraints(yo):
         for j in range(NUM_ITERATIONS):
             
-            for i in range(len(self.m_constraints)):
-                constraint = self.m_constraints[i]
-                delta = self.m_x[constraint.particleB] - self.m_x[constraint.particleA]
+            for i in range(len(yo.m_constraints)):
+                constraint = yo.m_constraints[i]
+                delta = yo.m_x[constraint.particleB] - yo.m_x[constraint.particleA]
                 deltaLength = np.linalg.norm(delta)
                 diff = (deltaLength - constraint.restlength) / deltaLength
-                self.m_x[constraint.particleA] += delta * 0.5 * diff
-                self.m_x[constraint.particleB] -= delta * 0.5 * diff
-            self.m_x[0] = np.array(self.defaultPosA, dtype=np.float64)
-            self.m_x[9] = np.array(self.defaultPosB, dtype=np.float64)
+                yo.m_x[constraint.particleA] += delta * 0.5 * diff
+                yo.m_x[constraint.particleB] -= delta * 0.5 * diff
+            yo.m_x[0] = np.array(yo.defaultPosA, dtype=np.float64)
+            yo.m_x[9] = np.array(yo.defaultPosB, dtype=np.float64)
     
             
                 
                 
-    def AccumulateForces(self):
+    def AccumulateForces(yo):
         # Accumulate forces
-        for i in range(len(self.m_x)):
+        for i in range(len(yo.m_x)):
 
-            self.m_a[i] = self.m_vGravity
+            yo.m_a[i] = yo.m_vGravity
             
-    def mouseEvent(self, event, x, y, flags, param):
+    def mouseEvent(yo, event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
-            self.defaultPosA = [x, y]
+            yo.defaultPosA = [x, y]
         if event == cv2.EVENT_RBUTTONDOWN:
-            self.defaultPosB = [x, y]
+            yo.defaultPosB = [x, y]
