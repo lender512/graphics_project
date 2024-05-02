@@ -9,17 +9,26 @@ class Particle:
         self.mass = 1
         self.isRigid = isRigid
     
+    # Vec3d apply_forces() const
+    # {
+    #     Vec3d grav_acc = Vec3d{0.0, 0.0, -9.81 }; // 9.81 m/s² down in the z-axis
+    #     Vec3d drag_force = 0.5 * drag * (vel * vel); // D = 0.5 * (rho * C * Area * vel^2)
+    #     Vec3d drag_acc = drag_force / mass; // a = F/m
+    #     return grav_acc - drag_acc;
+    # }
     def applyForce(self, force):
-        f = force.copy()
-        f /= self.mass
-        self.acceleration += f
+        self.acceleration += force / self.mass
         
-    def update(self):
-        self.velocity *= 0.99
-        self.velocity += self.acceleration
-        self.position += self.velocity
-        self.acceleration *= 0
+    
+    def update(self, dt):
+        new_pos = self.position + self.velocity * dt + self.acceleration * (dt * dt * 0.5)
+        # new_acc = self.apply_forces()
+        new_vel = self.velocity + (self.acceleration) * (dt * 0.5)
+        self.position = new_pos
+        self.velocity = new_vel
+        # self.acceleration = new_acc
+        
+        
         
     def show(self, img):
-
         cv2.circle(img, np.rint(self.position).astype(int), 5, (0, 255, 0), -1)
