@@ -4,7 +4,7 @@
 import numpy as np
 import cv2
 
-NUM_ITERATIONS = 10
+NUM_ITERATIONS = 5
 
 class Constraint:
     
@@ -38,28 +38,22 @@ class ParticleSystem:
         
     def Verlet(self):
         for i in range(len(self.m_x)):
-            x = self.m_x[i]
-            temp = x
-            oldx = self.m_oldx[i]
-            a = self.m_a[i]
-            x += x - oldx + a * self.m_fTimeStep * self.m_fTimeStep
-            oldx = temp
-            self.m_oldx[i] = oldx
+            temp = self.m_x[i].copy()
+            self.m_x[i] += self.m_x[i] - self.m_oldx[i] + self.m_a[i] * self.m_fTimeStep * self.m_fTimeStep
+            self.m_oldx[i] = temp.copy()
             
     def SatisfyConstraints(self):
         for j in range(NUM_ITERATIONS):
             
             for i in range(len(self.m_constraints)):
-                c = self.m_constraints[i]
-                x1 = self.m_x[c.particleA].copy()
-                x2 = self.m_x[c.particleB].copy()
-                delta = x2 - x1
-                delta *= c.restlength * c.restlength / (delta.dot(delta) + c.restlength * c.restlength) - 0.5
-                self.m_x[c.particleA] -= delta
-                self.m_x[c.particleB] += delta
-            
+                constraint = self.m_constraints[i]
+                delta = self.m_x[constraint.particleB] - self.m_x[constraint.particleA]
+                deltaLength = np.linalg.norm(delta)
+                diff = (deltaLength - constraint.restlength) / deltaLength
+                self.m_x[constraint.particleA] += delta * 0.5 * diff
+                self.m_x[constraint.particleB] -= delta * 0.5 * diff
             self.m_x[0] = np.array(self.defaultPosA, dtype=np.float64)
-                
+            self.m_x[9] = np.array(self.defaultPosB, dtype=np.float64)
     
             
                 

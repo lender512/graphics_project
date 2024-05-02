@@ -23,7 +23,7 @@ def generate_test (width, height, num_particles):
 
 test = generate_test(500, 500, 10)
 
-ps = ParticleSystem(len(test[0])*len(test) , np.array([0, 200], dtype=np.float64), .2)
+ps = ParticleSystem(len(test[0])*len(test) , np.array([0, 300], dtype=np.float64), .2)
 
 
 
@@ -32,17 +32,19 @@ for i in range(len(test)):
     for j in range(len(test[i])):
         ps.m_x[i*len(test[i])+j] = test[i][j]
         ps.m_oldx[i*len(test[i])+j] = test[i][j]
-    
+
+l = 30    
+
 for i in range(len(test)):
     for j in range(len(test[i])):
         if i > 0:
-            ps.m_constraints.append(Constraint(i*len(test[i])+j, (i-1)*len(test[i])+j, 40))
+            ps.m_constraints.append(Constraint(i*len(test[i])+j, (i-1)*len(test[i])+j, l))
         if i < len(test)-1:
-            ps.m_constraints.append(Constraint(i*len(test[i])+j, (i+1)*len(test[i])+j, 40))
+            ps.m_constraints.append(Constraint(i*len(test[i])+j, (i+1)*len(test[i])+j, l))
         if j > 0:
-            ps.m_constraints.append(Constraint(i*len(test[i])+j, i*len(test[i])+j-1, 40))
+            ps.m_constraints.append(Constraint(i*len(test[i])+j, i*len(test[i])+j-1, l))
         if j < len(test[i])-1:
-            ps.m_constraints.append(Constraint(i*len(test[i])+j, i*len(test[i])+j+1, 40))
+            ps.m_constraints.append(Constraint(i*len(test[i])+j, i*len(test[i])+j+1, l))
 1
             
     
@@ -70,7 +72,7 @@ while True:
     
     
 
-    ps.TimeStep(.05)
+    ps.TimeStep(0.1)
       
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
