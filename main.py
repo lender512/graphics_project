@@ -1,4 +1,3 @@
-from spring import Spring
 import cv2
 import numpy as np
 import imageio
@@ -23,7 +22,7 @@ def generate_test (width, height, num_particles):
 
 test = generate_test(500, 500, 10)
 
-ps = ParticleSystem(len(test[0])*len(test) , np.array([0, 300], dtype=np.float64), .2)
+ps = ParticleSystem(len(test[0])*len(test) , np.array([0, 50], dtype=np.float64), .2)
 
 
 
@@ -33,7 +32,7 @@ for i in range(len(test)):
         ps.m_x[i*len(test[i])+j] = test[i][j]
         ps.m_oldx[i*len(test[i])+j] = test[i][j]
 
-l = 30    
+l = 10    
 
 for i in range(len(test)):
     for j in range(len(test[i])):
@@ -72,7 +71,8 @@ while True:
     
     
 
-    ps.TimeStep(0.1)
+    ps.TimeStep(time.time()-t if t < 0.1 else 0.1)
+    t = time.time()
       
 
     if cv2.waitKey(1) & 0xFF == ord('q'):

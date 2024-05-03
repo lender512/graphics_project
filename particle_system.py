@@ -4,7 +4,7 @@
 import numpy as np
 import cv2
 
-NUM_ITERATIONS = 2
+NUM_ITERATIONS = 10
 
 class Constraint:
     
@@ -50,8 +50,8 @@ class ParticleSystem:
                 delta = yo.m_x[constraint.particleB] - yo.m_x[constraint.particleA]
                 deltaLength = np.linalg.norm(delta)
                 diff = (deltaLength - constraint.restlength) / deltaLength
-                yo.m_x[constraint.particleA] += delta * 0.5 * diff
-                yo.m_x[constraint.particleB] -= delta * 0.5 * diff
+                yo.m_x[constraint.particleA] += delta * 0.2 * diff
+                yo.m_x[constraint.particleB] -= delta * 0.2 * diff
             yo.m_x[0] = np.array(yo.defaultPosA, dtype=np.float64)
             yo.m_x[9] = np.array(yo.defaultPosB, dtype=np.float64)
     
