@@ -1,6 +1,13 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
+#include <common/shader.hpp>
+
+//segfaults: 0
 
 using namespace std; 
 
@@ -9,6 +16,10 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
+
+
+
+//args
 int main()
 {
     if (!glfwInit())
@@ -55,10 +66,14 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
     // Give our vertices to OpenGL.
     glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+    GLuint programID = LoadShaders( "./shaders/SimpleVertexShader.vertexshader", "./shaders/SimpleFragmentShader.fragmentshader" );
 
-    while(!glfwWindowShouldClose(window))
-    {
-        //draw 
+    do{
+        // Clear the screen. It's not mentioned before Tutorial 02, but it can cause flickering, so it's there nonetheless.
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        // Draw nothing, see you in tutorial 2 !
+        glUseProgram(programID);
         glEnableVertexAttribArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
         glVertexAttribPointer(
@@ -73,9 +88,13 @@ int main()
         glDrawArrays(GL_TRIANGLES, 0, 3); // Starting from vertex 0; 3 vertices total -> 1 triangle
         glDisableVertexAttribArray(0);
 
+        // Swap buffers
         glfwSwapBuffers(window);
-        glfwPollEvents();    
-    }
+        glfwPollEvents();
+
+    } // Check if the ESC key was pressed or the window was closed
+    while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
+        glfwWindowShouldClose(window) == 0 );
 
     glfwTerminate();
     return 0;
