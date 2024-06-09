@@ -1,24 +1,26 @@
 import numpy as np
 import cv2
 
-NUM_ITERATIONS = 1
+NUM_ITERATIONS = 2
 
 class ParticleSystem:
     defaultPosA = np.array([0, 0, 0], dtype=np.float64)
-    defaultPosB = np.array([500, 0, 0], dtype=np.float64)
+    defaultPosB = np.array([100, 0, 0], dtype=np.float64)
 
-    def __init__(self, num_particles, gravity, time_step):
-        self.x = np.zeros((num_particles, 3), dtype=np.float64)
-        self.oldx = np.zeros((num_particles, 3), dtype=np.float64)
+    def __init__(self, particles, gravity, time_step):
+        self.x = np.array(particles, dtype=np.float64)
+        self.oldx = np.array(particles, dtype=np.float64)
         #use gravity to create aceleration array
         self.vGravity = gravity
-        self.a = np.ones((num_particles, 3), dtype=np.float64) * gravity
+        self.a = np.ones((len(particles), 3), dtype=np.float64) * gravity
         self.fTimeStep_2 = time_step * time_step
         self.constraints = []
 
-    def setConstraint(self, constraints):
-        self.constraints = constraints
-
+    def setConstraint(self, constraints, lengths):
+        self.constraints = np.array(constraints, dtype=np.int32)
+        self.lengths = np.array(lengths, dtype=np.float64)
+        
+        
     def addParticles(self, particles):
         self.x = particles
         self.oldx = particles
@@ -39,9 +41,9 @@ class ParticleSystem:
             for i, constraint in enumerate(self.constraints):
                 delta = self.x[constraint[1]] - self.x[constraint[0]]
                 deltaLength = np.linalg.norm(delta)
-                correction = delta * (1 - constraint[2] / deltaLength)
+                correction = delta * (1 - self.lengths[i] / deltaLength)
                 self.x[constraint[0]], self.x[constraint[1]] = self.x[constraint[0]] + correction * 0.5, self.x[constraint[1]] - correction * 0.5
-            self.x[0], self.x[9] = self.defaultPosA, self.defaultPosB
+            self.x[0], self.x[14] = self.defaultPosA, self.defaultPosB
 
     def AccumulateForces(self):
         self.a[:] = self.vGravity
