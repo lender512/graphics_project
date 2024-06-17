@@ -4,10 +4,9 @@ import cv2
 NUM_ITERATIONS = 3
 
 class ParticleSystem:
-    defaultPosA = np.array([0, 0, 0], dtype=np.float64)
-    defaultPosB = np.array([100, 0, 0], dtype=np.float64)
 
-    def __init__(self, particles, gravity, time_step, is_rigid):
+    def __init__(self, cloth, gravity, time_step):
+        particles = cloth.vertices
         self.x = np.array(particles, dtype=np.float64)
         self.oldx = np.array(particles, dtype=np.float64)
         #use gravity to create aceleration array
@@ -16,7 +15,7 @@ class ParticleSystem:
         self.fTimeStep_2 = time_step * time_step
         self.constraints = []
         # self.is_rigid = is_rigid
-        self.is_rigid = np.array(is_rigid, dtype=np.bool_)
+        self.is_rigid = np.array(cloth.is_rigid, dtype=np.bool_)
 
     def setConstraint(self, constraints, lengths):
         self.constraints = np.array(constraints, dtype=np.int32)
