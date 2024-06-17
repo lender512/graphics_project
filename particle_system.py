@@ -1,13 +1,13 @@
 import numpy as np
 import cv2
 
-NUM_ITERATIONS = 2
+NUM_ITERATIONS = 3
 
 class ParticleSystem:
     defaultPosA = np.array([0, 0, 0], dtype=np.float64)
     defaultPosB = np.array([100, 0, 0], dtype=np.float64)
 
-    def __init__(self, particles, gravity, time_step):
+    def __init__(self, particles, gravity, time_step, is_rigid):
         self.x = np.array(particles, dtype=np.float64)
         self.oldx = np.array(particles, dtype=np.float64)
         #use gravity to create aceleration array
@@ -15,6 +15,8 @@ class ParticleSystem:
         self.a = np.ones((len(particles), 3), dtype=np.float64) * gravity
         self.fTimeStep_2 = time_step * time_step
         self.constraints = []
+        # self.is_rigid = is_rigid
+        self.is_rigid = np.array(is_rigid, dtype=np.bool_)
 
     def setConstraint(self, constraints, lengths):
         self.constraints = np.array(constraints, dtype=np.int32)
@@ -27,14 +29,23 @@ class ParticleSystem:
 
     def TimeStep(self, dt):
         # self.fTimeStep = dt * dt
-        # self.AccumulateForces()
+        self.AccumulateForces()
         self.Verlet()
         self.SatisfyConstraints()
 
     def Verlet(self):
-        temp = self.x.copy()
-        self.x = self.x + (self.x - self.oldx + self.a * self.fTimeStep_2)
-        self.oldx = temp
+        #just update where not is rigid
+        # for i in range(len(self.x)):
+        #     if not self.is_rigid[i]:
+        #         temp = self.x[i].copy()
+        #         self.x[i] = self.x[i] + (self.x[i] - self.oldx[i] + self.a[i] * self.fTimeStep_2)
+        #         self.oldx[i] = temp
+        #use vectorized operations
+        temp = self.x[~self.is_rigid].copy()
+        self.x[~self.is_rigid] = self.x[~self.is_rigid] + (self.x[~self.is_rigid] - self.oldx[~self.is_rigid] + self.a[~self.is_rigid] * self.fTimeStep_2)
+        self.oldx[~self.is_rigid] = temp
+        
+         
         
     def SatisfyConstraints(self):
         for _ in range(NUM_ITERATIONS):
@@ -42,19 +53,28 @@ class ParticleSystem:
                 delta = self.x[constraint[1]] - self.x[constraint[0]]
                 deltaLength = np.linalg.norm(delta)
                 correction = delta * (1 - self.lengths[i] / deltaLength)
-                self.x[constraint[0]], self.x[constraint[1]] = self.x[constraint[0]] + correction * 0.5, self.x[constraint[1]] - correction * 0.5
-            self.x[0], self.x[14] = self.defaultPosA, self.defaultPosB
+                if not self.is_rigid[constraint[0]]:
+                    self.x[constraint[0]] += correction * 0.5
+                if not self.is_rigid[constraint[1]]:
+                    self.x[constraint[1]] -= correction * 0.5
+            # self.x[0], self.x[14] = self.defaultPosA, self.defaultPosB
 
     def AccumulateForces(self):
         self.a[:] = self.vGravity
+        #set gravity where not is rigid
+        
 
     def mouseEvent(self, event, x, y, flags, param):
+        SHIFT = param
+        #rigid indexes 
+        indexes = self.is_rigid.nonzero()[0]
         if event == cv2.EVENT_LBUTTONDOWN:
-            self.defaultPosA = np.array([x, y, 0], dtype=np.float64)
+            self.x[indexes[0]][:2] = np.array([x - SHIFT[0], y - SHIFT[1]], dtype=np.float64)
         if event == cv2.EVENT_RBUTTONDOWN:
-            self.defaultPosB = np.array([x, y, 0], dtype=np.float64)
+            self.x[indexes[1]][:2] = np.array([x - SHIFT[0], y - SHIFT[1]], dtype=np.float64)
             
     def ball_collision(self, ball_radius, ball_pos):
+        ball_radius += 5
         for i in range(len(self.x)):
             if np.linalg.norm(self.x[i] - ball_pos) < ball_radius:
                 normal = (self.x[i] - ball_pos) / np.linalg.norm(self.x[i] - ball_pos)
