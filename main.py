@@ -11,7 +11,7 @@ HEIGHT = 300
 WIDTH = 300 * 16 // 9
 FOCAL_LENGTH = 100
 SHIFT = np.array([WIDTH // 2, HEIGHT // 2])
-LIGHT_DIR = np.array([0, 0, 0])
+GRAVITY = np.array([0, 9.1, 0], np.float64)
 
 # create enum for the different test
 
@@ -76,13 +76,13 @@ def draw_mesh(img, vertices, mesh_triangles, normals, shift=(0, 0), colors=None,
 
 
 def cam_test():
-    cloth = Cloth(100, 100, 10)
+    cloth = Cloth(150, 150, 10)
     cloth.is_rigid[0] = True
     cloth.is_rigid[9] = True
     
     
     particle_system = ParticleSystem(
-        cloth, np.array([0, .91, 0], dtype=np.float64), .4)
+        cloth, GRAVITY, .4)
 
     constraints = []
     lengths = []
@@ -174,23 +174,30 @@ def cam_test():
     cv2.destroyAllWindows()
 
 def ball_test():
-    cloth = Cloth(100, 100, 10)
-    ball = Ball(10, [0, 0, -150])
+    l = 12
+    cloth = Cloth(400, 400, l)
+    cloth.vertices[:, 2] -= 150
+    cloth.is_rigid[0] = True
+    cloth.is_rigid[11] = True
+    ball = Ball(60, [0, 0, -150])
     particle_system = ParticleSystem(
-        cloth, np.array([0, .91, 0], dtype=np.float64), .4)
+        cloth, GRAVITY, .4)
 
     constraints = []
     lengths = []
 
-    for i in range(len(cloth.faces)):
-        for j in range(3):
-            for k in range(j + 1, 3):
-                edge = [cloth.faces[i][j], cloth.faces[i][k]]
-                if edge not in constraints and edge[::-1] not in constraints:
-                    constraints.append(edge)
-                    lengths.append(np.linalg.norm(
-                        particle_system.x[edge[0]] - particle_system.x[edge[1]]))
-    particle_system.setConstraint(constraints, lengths)
+    flatten_coord = lambda i, j: i * l + j
+    for idx in range(len(cloth.vertices)):
+        i = idx // l
+        j = idx % l
+        for (a, b) in [(i, j + 1), (i + 1, j), (i + 1, j + 1), (i - 1, j + 1)]:
+            if 0 <= a < l and 0 <= b < l:
+                constraints.append([idx, flatten_coord(a, b)])
+                lengths.append(np.linalg.norm(
+                    particle_system.x[idx] - particle_system.x[flatten_coord(a, b)]))
+    
+    particle_system.setConstraint(constraints, lengths)            
+    
 
     start_time = time.time()
     frame_count = 0
@@ -205,7 +212,7 @@ def ball_test():
         draw_mesh(frame, np.vstack((particle_system.x, ball.vertices)),
                   np.vstack((cloth.faces, np.array(
                       ball.faces) + len(particle_system.x))),
-                  np.vstack((cloth_normals, ball_normals)), LIGHT_DIR, SHIFT,
+                  np.vstack((cloth_normals, ball_normals)), SHIFT,
                   np.vstack((cloth.colors, ball.colors)))
 
         particle_system.ball_collision(ball.radius, ball.origin)
@@ -232,6 +239,8 @@ def ball_test():
         elif key == ord('s'):
             ball.vertices[:, 2] += 2
             ball.origin[2] += 2
+        elif key == ord(' '):
+            particle_system.spacebarEvent()
         elif key == ord('q'):
             break
 
@@ -245,5 +254,6 @@ def main(test):
 
 
 if __name__ == "__main__":
-    test = Test.CAM
+    # test = Test.CAM
+    test = Test.BALL
     main(test)

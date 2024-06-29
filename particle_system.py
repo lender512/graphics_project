@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 
-NUM_ITERATIONS = 3
+NUM_ITERATIONS = 5
 
 class ParticleSystem:
 
@@ -72,10 +72,23 @@ class ParticleSystem:
         if event == cv2.EVENT_RBUTTONDOWN:
             self.x[indexes[1]][:2] = np.array([x - SHIFT[0], y - SHIFT[1]], dtype=np.float64)
             
+    def spacebarEvent(self):
+        self.is_rigid = np.zeros(len(self.x), dtype=np.bool_)
+            
     def ball_collision(self, ball_radius, ball_pos):
-        ball_radius += 5
+        # ball_radius = ball_radius * 1.2
         for i in range(len(self.x)):
-            if np.linalg.norm(self.x[i] - ball_pos) < ball_radius:
-                normal = (self.x[i] - ball_pos) / np.linalg.norm(self.x[i] - ball_pos)
-                self.x[i] = ball_pos + normal * ball_radius
+            # auto v = particle.position - ball.position;
+            # auto l = glm::length(v);
+            # // if the particle is inside the ball
+            # if (l <= ball.radius) {
+            #     // project the particle to the surface of the ball
+            #     particle.move(glm::normalize(v) * (ball.radius - l));
+            # }
+            v = self.x[i] - ball_pos
+            l = np.linalg.norm(v)
+            if l <= ball_radius:
+                self.x[i] += v / l * (ball_radius*1.2 - l)
                 self.oldx[i] = self.x[i]
+                
+                
