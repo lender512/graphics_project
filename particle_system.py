@@ -78,13 +78,6 @@ class ParticleSystem:
     def ball_collision(self, ball_radius, ball_pos):
         # ball_radius = ball_radius * 1.2
         for i in range(len(self.x)):
-            # auto v = particle.position - ball.position;
-            # auto l = glm::length(v);
-            # // if the particle is inside the ball
-            # if (l <= ball.radius) {
-            #     // project the particle to the surface of the ball
-            #     particle.move(glm::normalize(v) * (ball.radius - l));
-            # }
             v = self.x[i] - ball_pos
             l = np.linalg.norm(v)
             if l <= ball_radius:

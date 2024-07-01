@@ -254,6 +254,6 @@ def main(test):
 
 
 if __name__ == "__main__":
-    # test = Test.CAM
-    test = Test.BALL
+    test = Test.CAM
+    # test = Test.BALL
     main(test)
